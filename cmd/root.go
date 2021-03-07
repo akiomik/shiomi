@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color/palette"
 	"image/gif"
+	"io"
 	"os"
 
 	"github.com/akiomik/shiomi/audio"
@@ -57,38 +58,6 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		a, err := audio.NewAudio(inputFile, freq, windowSize, rate)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-
-		var images []*image.Paletted
-		var delays []int
-		colorPalette := palette.Plan9
-
-		simg, err := simage.NewSignalImage(uint(width), uint(height), bgColor, fgColor, 0.8)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-
-		readCycles := a.ReadCycles()
-		for audioData := range readCycles {
-			samples := audioData.Samples
-			if audioData.Error != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-
-			simg.DrawSignal(samples)
-			pimg := simg.ConvertToPaletted(colorPalette)
-			simg.Clear()
-
-			images = append(images, pimg)
-			delays = append(delays, 0)
-		}
-
 		outputFile, err := os.OpenFile(output, os.O_WRONLY|os.O_CREATE, 0600)
 		defer outputFile.Close()
 		if err != nil {
@@ -96,13 +65,7 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		colorModel := image.NewPaletted(image.Rect(0, 0, 1, 1), colorPalette).ColorModel()
-		gifConfig := image.Config{ColorModel: colorModel, Width: width, Height: height}
-		gif.EncodeAll(outputFile, &gif.GIF{
-			Image:  images,
-			Delay:  delays,
-			Config: gifConfig,
-		})
+		generateWaveformGif(inputFile, outputFile)
 	},
 }
 
@@ -125,4 +88,46 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func generateWaveformGif(inputFile io.Reader, outputFile io.Writer) {
+	a, err := audio.NewAudio(inputFile, freq, windowSize, rate)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	var images []*image.Paletted
+	var delays []int
+	colorPalette := palette.Plan9
+
+	wimg, err := simage.NewWaveformImage(uint(width), uint(height), bgColor, fgColor, 0.8)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	readCycles := a.ReadCycles()
+	for audioData := range readCycles {
+		samples := audioData.Samples
+		if audioData.Error != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+
+		wimg.DrawWaveform(samples)
+		pimg := wimg.ConvertToPaletted(colorPalette)
+		wimg.Clear()
+
+		images = append(images, pimg)
+		delays = append(delays, 0)
+	}
+
+	colorModel := image.NewPaletted(image.Rect(0, 0, 1, 1), colorPalette).ColorModel()
+	gifConfig := image.Config{ColorModel: colorModel, Width: width, Height: height}
+	gif.EncodeAll(outputFile, &gif.GIF{
+		Image:  images,
+		Delay:  delays,
+		Config: gifConfig,
+	})
 }
