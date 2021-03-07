@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/color/palette"
 	"image/gif"
 	"math"
 	"os"
 
 	"github.com/akiomik/shiomi/config"
+	"github.com/fogleman/gg"
 	"github.com/mjibson/go-dsp/wav"
 	"github.com/spf13/cobra"
 )
@@ -58,16 +60,17 @@ var rootCmd = &cobra.Command{
 		nSamplesPerCycle := float64(w.Header.SampleRate) / float64(freq)
 		nSamplesPerWindow := int(math.Round(nSamplesPerCycle * float64(window)))
 
-		palette := []color.Color{
-			color.RGBA{0x00, 0x00, 0x00, 0xff},
-			color.RGBA{0x00, 0xff, 0x00, 0xff},
-		}
-		green := palette[1]
-
 		var images []*image.Paletted
 		var delays []int
 
-		xScale := float64(width) / float64(nSamplesPerWindow)
+		bgColor := color.RGBA{0x00, 0x00, 0x00, 0xff}
+		fgColor := color.RGBA{0x00, 0xff, 0x00, 0xff}
+		colorPalette := palette.Plan9
+
+		heightf := float64(height)
+		widthf := float64(width)
+		xScale := widthf / float64(nSamplesPerWindow)
+
 		for i := 0; i < w.Samples/nSamplesPerWindow; i++ {
 			samples, err := w.ReadFloats(nSamplesPerWindow)
 			if err != nil {
@@ -80,11 +83,29 @@ var rootCmd = &cobra.Command{
 				continue
 			}
 
-			img := image.NewPaletted(image.Rect(0, 0, width, height), palette)
-			for j, sample := range samples {
-				x := int(math.Round(float64(j) * xScale))
-				y := height - int(math.Round(float64(sample)*float64(height)))
-				img.Set(x, y, green)
+			dc := gg.NewContext(width, height)
+			dc.SetColor(bgColor)
+			dc.DrawRectangle(0, 0, widthf, heightf)
+			dc.Fill()
+			dc.SetColor(fgColor)
+			dc.SetLineWidth(0.8)
+
+			for j, sample := range samples[:len(samples)-1] {
+				x1 := math.Round(float64(j) * xScale)
+				y1 := heightf - math.Round(float64(sample)*heightf)
+				x2 := math.Round(float64(j+1) * xScale)
+				y2 := heightf - math.Round(float64(samples[j+1])*heightf)
+				dc.DrawLine(x1, y1, x2, y2)
+			}
+
+			dc.Stroke()
+
+			img := image.NewPaletted(dc.Image().Bounds(), colorPalette)
+			bounds := img.Bounds()
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+					img.Set(x, y, dc.Image().At(x, y))
+				}
 			}
 
 			images = append(images, img)
@@ -98,9 +119,12 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		colorModel := image.NewPaletted(image.Rect(0, 0, 1, 1), colorPalette).ColorModel()
+		gifConfig := image.Config{ColorModel: colorModel, Width: width, Height: height}
 		gif.EncodeAll(outputFile, &gif.GIF{
-			Image: images,
-			Delay: delays,
+			Image:  images,
+			Delay:  delays,
+			Config: gifConfig,
 		})
 	},
 }
