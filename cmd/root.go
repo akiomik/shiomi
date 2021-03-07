@@ -9,19 +9,20 @@ import (
 	"math"
 	"os"
 
+	"github.com/akiomik/shiomi/audio"
 	"github.com/akiomik/shiomi/config"
 	"github.com/fogleman/gg"
-	"github.com/mjibson/go-dsp/wav"
 	"github.com/spf13/cobra"
 )
 
 var (
-	input  string
-	output string
-	freq   uint
-	window uint
-	width  int
-	height int
+	input      string
+	output     string
+	freq       uint
+	windowSize uint
+	rate       uint
+	width      int
+	height     int
 )
 
 var rootCmd = &cobra.Command{
@@ -34,8 +35,13 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if window <= 0 {
+		if windowSize <= 0 {
 			fmt.Println("num must be > 0")
+			os.Exit(1)
+		}
+
+		if rate <= 0 {
+			fmt.Println("rate must be > 0")
 			os.Exit(1)
 		}
 
@@ -51,14 +57,11 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		w, err := wav.New(inputFile)
+		a, err := audio.NewAudio(inputFile, freq, windowSize, rate)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
-
-		nSamplesPerCycle := float64(w.Header.SampleRate) / float64(freq)
-		nSamplesPerWindow := int(math.Round(nSamplesPerCycle * float64(window)))
 
 		var images []*image.Paletted
 		var delays []int
@@ -69,18 +72,14 @@ var rootCmd = &cobra.Command{
 
 		heightf := float64(height)
 		widthf := float64(width)
-		xScale := widthf / float64(nSamplesPerWindow)
+		xScale := widthf / a.NumSamplesPerWindow()
 
-		for i := 0; i < w.Samples/nSamplesPerWindow; i++ {
-			samples, err := w.ReadFloats(nSamplesPerWindow)
-			if err != nil {
+		readCycles := a.ReadCycles()
+		for audioData := range readCycles {
+			samples := audioData.Samples
+			if audioData.Error != nil {
 				fmt.Println(err.Error())
 				os.Exit(1)
-			}
-
-			// subsampling
-			if i%10 != 0 {
-				continue
 			}
 
 			dc := gg.NewContext(width, height)
@@ -94,7 +93,7 @@ var rootCmd = &cobra.Command{
 				x1 := math.Round(float64(j) * xScale)
 				y1 := heightf - math.Round(float64(sample)*heightf)
 				x2 := math.Round(float64(j+1) * xScale)
-				y2 := heightf - math.Round(float64(samples[j+1])*heightf)
+				y2 := heightf - math.Round(float64(audioData.Samples[j+1])*heightf)
 				dc.DrawLine(x1, y1, x2, y2)
 			}
 
@@ -133,7 +132,8 @@ func init() {
 	rootCmd.Flags().StringVarP(&input, "input", "i", "", "A *.wav file (required)")
 	rootCmd.Flags().StringVarP(&output, "output", "o", "", "An output gif file (required)")
 	rootCmd.Flags().UintVarP(&freq, "freq", "f", 1000, "The frequency of an input file [Hz]")
-	rootCmd.Flags().UintVarP(&window, "num", "n", 3, "An output number of cycles")
+	rootCmd.Flags().UintVarP(&windowSize, "num", "n", 3, "An output number of cycles")
+	rootCmd.Flags().UintVarP(&rate, "rate", "r", 10, "A subsampling rate for output")
 	rootCmd.Flags().IntVarP(&width, "width", "", 640, "A width of an output file")
 	rootCmd.Flags().IntVarP(&height, "height", "", 480, "A height of an output file")
 	rootCmd.MarkFlagRequired("input")
