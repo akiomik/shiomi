@@ -58,11 +58,11 @@ func (audio *Audio) NumWindow() uint {
 	return uint(audio.w.Samples) / audio.RoundedNumSamplesPerWindow()
 }
 
-func (audio *Audio) ReadCycles() <-chan AudioData {
+func (audio *Audio) ReadCycles() <-chan *AudioData {
 	nSamplesPerWindow := int(audio.RoundedNumSamplesPerWindow())
 	nWindow := audio.NumWindow()
 
-	ch := make(chan AudioData)
+	ch := make(chan *AudioData)
 	go func() {
 		defer close(ch)
 
@@ -72,7 +72,7 @@ func (audio *Audio) ReadCycles() <-chan AudioData {
 				continue
 			}
 
-			ch <- AudioData{Samples: samples, Error: err}
+			ch <- &AudioData{Samples: samples, Error: err}
 		}
 	}()
 

@@ -14,11 +14,11 @@ type WaveformImage struct {
 	Height    uint
 	BgColor   string
 	FgColor   string
-	LineWidth float32
+	LineWidth float64
 	context   *gg.Context
 }
 
-func NewWaveformImage(width uint, height uint, bgColor string, fgColor string, lineWidth float32) (*WaveformImage, error) {
+func NewWaveformImage(width uint, height uint, bgColor string, fgColor string, lineWidth float64) (*WaveformImage, error) {
 	if width <= 0 || height <= 0 {
 		return nil, errors.New("width and height must be > 0")
 	}
@@ -35,7 +35,7 @@ func (wimg *WaveformImage) DrawBackground() {
 
 func (wimg *WaveformImage) DrawPolyLine(points []gg.Point) {
 	wimg.context.SetHexColor(wimg.FgColor)
-	wimg.context.SetLineWidth(0.8)
+	wimg.context.SetLineWidth(wimg.LineWidth)
 
 	for i, p1 := range points[:len(points)-1] {
 		p2 := points[i+1]

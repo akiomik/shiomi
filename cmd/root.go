@@ -20,8 +20,8 @@ var (
 	freq       uint
 	windowSize uint
 	rate       uint
-	width      int
-	height     int
+	width      uint
+	height     uint
 	bgColor    string
 	fgColor    string
 )
@@ -58,7 +58,7 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		outputFile, err := os.OpenFile(output, os.O_WRONLY|os.O_CREATE, 0600)
+		outputFile, err := os.OpenFile(output, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 		defer outputFile.Close()
 		if err != nil {
 			fmt.Println(err.Error())
@@ -75,8 +75,8 @@ func init() {
 	rootCmd.Flags().UintVarP(&freq, "freq", "f", 1000, "The frequency of an input file [Hz]")
 	rootCmd.Flags().UintVarP(&windowSize, "num", "n", 3, "An output number of cycles")
 	rootCmd.Flags().UintVarP(&rate, "rate", "r", 10, "A subsampling rate for output")
-	rootCmd.Flags().IntVarP(&width, "width", "", 640, "A width of an output file [px]")
-	rootCmd.Flags().IntVarP(&height, "height", "", 480, "A height of an output file [px]")
+	rootCmd.Flags().UintVarP(&width, "width", "", 640, "A width of an output file [px]")
+	rootCmd.Flags().UintVarP(&height, "height", "", 480, "A height of an output file [px]")
 	rootCmd.Flags().StringVarP(&bgColor, "bg", "", "#000000", "A background color for output")
 	rootCmd.Flags().StringVarP(&fgColor, "fg", "", "#00ff00", "A foreground color for output")
 	rootCmd.MarkFlagRequired("input")
@@ -97,37 +97,38 @@ func generateWaveformGif(inputFile io.Reader, outputFile io.Writer) {
 		os.Exit(1)
 	}
 
-	var images []*image.Paletted
-	var delays []int
 	colorPalette := palette.Plan9
-
-	wimg, err := simage.NewWaveformImage(uint(width), uint(height), bgColor, fgColor, 0.8)
+	lineWidth := 0.8
+	wimg, err := simage.NewWaveformImage(width, height, bgColor, fgColor, lineWidth)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	readCycles := a.ReadCycles()
-	for audioData := range readCycles {
-		samples := audioData.Samples
-		if audioData.Error != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
+	imgGen := make(chan *image.Paletted)
+	go func() {
+		defer close(imgGen)
+
+		for audioData := range a.ReadCycles() {
+			samples := audioData.Samples
+			if audioData.Error != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+
+			wimg.DrawWaveform(samples)
+			pimg := wimg.ConvertToPaletted(colorPalette)
+			wimg.Clear()
+
+			imgGen <- pimg
 		}
+	}()
 
-		wimg.DrawWaveform(samples)
-		pimg := wimg.ConvertToPaletted(colorPalette)
-		wimg.Clear()
-
-		images = append(images, pimg)
-		delays = append(delays, 0)
+	animeGif, err := simage.GenerateAnimationGif(imgGen, width, height, colorPalette, 0)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
 	}
 
-	colorModel := image.NewPaletted(image.Rect(0, 0, 1, 1), colorPalette).ColorModel()
-	gifConfig := image.Config{ColorModel: colorModel, Width: width, Height: height}
-	gif.EncodeAll(outputFile, &gif.GIF{
-		Image:  images,
-		Delay:  delays,
-		Config: gifConfig,
-	})
+	gif.EncodeAll(outputFile, animeGif)
 }
