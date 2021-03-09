@@ -8,9 +8,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/akiomik/shiomi/audio"
 	"github.com/akiomik/shiomi/config"
-	simage "github.com/akiomik/shiomi/image"
+	"github.com/akiomik/shiomi/internal/audio"
+	simage "github.com/akiomik/shiomi/internal/image"
 	"github.com/spf13/cobra"
 )
 
