@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-var testTone = "../../test/data/sine-44.1kHz-16bit-1kHz-5s.wav"
+var testTone = "../../test/data/sine-44.1kHz-16bit-1kHz-3s.wav"
 
 func TestNewAudio(t *testing.T) {
 	f, err := os.Open(testTone)
@@ -102,7 +102,7 @@ func TestNumWindow(t *testing.T) {
 	}
 
 	got := a.NumWindow()
-	if got != 1670 {
-		t.Errorf("NumWindow() = %d; want 132", got)
+	if got != 1003 {
+		t.Errorf("NumWindow() = %d; want 1003", got)
 	}
 }
