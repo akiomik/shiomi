@@ -75,10 +75,10 @@ func init() {
 	rootCmd.Flags().UintVarP(&freq, "freq", "f", 1000, "The frequency of an input file [Hz]")
 	rootCmd.Flags().UintVarP(&windowSize, "num", "n", 3, "An output number of cycles")
 	rootCmd.Flags().UintVarP(&rate, "rate", "r", 10, "A subsampling rate for output")
-	rootCmd.Flags().UintVarP(&width, "width", "", 640, "A width of an output file [px]")
-	rootCmd.Flags().UintVarP(&height, "height", "", 480, "A height of an output file [px]")
+	rootCmd.Flags().UintVarP(&width, "width", "", 320, "A width of an output file [px]")
+	rootCmd.Flags().UintVarP(&height, "height", "", 240, "A height of an output file [px]")
 	rootCmd.Flags().StringVarP(&bgColor, "bg", "", "#000000", "A background color for output")
-	rootCmd.Flags().StringVarP(&fgColor, "fg", "", "#00ff00", "A foreground color for output")
+	rootCmd.Flags().StringVarP(&fgColor, "fg", "", "#ffffff", "A foreground color for output")
 	rootCmd.MarkFlagRequired("input")
 	rootCmd.MarkFlagRequired("output")
 }
@@ -98,7 +98,7 @@ func generateWaveformGif(inputFile io.Reader, outputFile io.Writer) {
 	}
 
 	colorPalette := palette.Plan9
-	lineWidth := 0.8
+	lineWidth := 2.0
 	wimg, err := simage.NewWaveformImage(width, height, bgColor, fgColor, lineWidth)
 	if err != nil {
 		fmt.Println(err.Error())
