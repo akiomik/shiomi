@@ -50,7 +50,7 @@ func (wimg *WaveformImage) DrawPolyLine(points []Point) {
 func (wimg *WaveformImage) DrawWaveform(data []float32) {
 	widthf := float64(wimg.Width)
 	heightf := float64(wimg.Height)
-	xScale := widthf / float64(len(data))
+	xScale := widthf / float64(len(data)-1)
 
 	wimg.DrawBackground()
 
