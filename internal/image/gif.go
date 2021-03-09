@@ -7,7 +7,7 @@ import (
 	"image/gif"
 )
 
-func GenerateAnimationGif(ch <-chan *image.Paletted, width uint, height uint, palette color.Palette, delay uint) (*gif.GIF, error) {
+func GenerateAnimationGIF(ch <-chan *image.Paletted, width uint, height uint, palette color.Palette, delay uint) (*gif.GIF, error) {
 	if width <= 0 || height <= 0 {
 		return nil, errors.New("width and height must be > 0")
 	}

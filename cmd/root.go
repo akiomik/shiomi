@@ -65,7 +65,7 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		generateWaveformGif(inputFile, outputFile)
+		generateWaveformGIF(inputFile, outputFile)
 	},
 }
 
@@ -90,7 +90,7 @@ func Execute() {
 	}
 }
 
-func generateWaveformGif(inputFile io.Reader, outputFile io.Writer) {
+func generateWaveformGIF(inputFile io.Reader, outputFile io.Writer) {
 	a, err := audio.NewAudio(inputFile, freq, windowSize, rate)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -124,11 +124,11 @@ func generateWaveformGif(inputFile io.Reader, outputFile io.Writer) {
 		}
 	}()
 
-	animeGif, err := simage.GenerateAnimationGif(imgGen, width, height, colorPalette, 0)
+	animeGIF, err := simage.GenerateAnimationGIF(imgGen, width, height, colorPalette, 0)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	gif.EncodeAll(outputFile, animeGif)
+	gif.EncodeAll(outputFile, animeGIF)
 }
