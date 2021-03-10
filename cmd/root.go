@@ -2,15 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"image"
-	"image/color/palette"
-	"image/gif"
-	"io"
 	"os"
 
 	"github.com/akiomik/shiomi/config"
-	"github.com/akiomik/shiomi/internal/audio"
-	simage "github.com/akiomik/shiomi/internal/image"
+	"github.com/akiomik/shiomi/internal/generator"
 	"github.com/spf13/cobra"
 )
 
@@ -65,7 +60,18 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		generateWaveformGIF(inputFile, outputFile)
+		config := &generator.Config{
+			Frequency:       freq,
+			WindowSize:      windowSize,
+			SubsamplingRate: rate,
+			Width:           width,
+			Height:          height,
+			BgColor:         bgColor,
+			FgColor:         fgColor,
+			LineWidth:       2.0,
+			Delay:           0,
+		}
+		generator.GenerateWaveformGIF(inputFile, outputFile, config)
 	},
 }
 
@@ -88,47 +94,4 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
-
-func generateWaveformGIF(inputFile io.Reader, outputFile io.Writer) {
-	a, err := audio.NewAudio(inputFile, freq, windowSize, rate)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	colorPalette := palette.Plan9
-	lineWidth := 2.0
-	wimg, err := simage.NewWaveformImage(width, height, bgColor, fgColor, lineWidth)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	imgGen := make(chan *image.Paletted)
-	go func() {
-		defer close(imgGen)
-
-		for audioData := range a.ReadCycles() {
-			samples := audioData.Samples
-			if audioData.Error != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-
-			wimg.DrawWaveform(samples)
-			pimg := wimg.ConvertToPaletted(colorPalette)
-			wimg.Clear()
-
-			imgGen <- pimg
-		}
-	}()
-
-	animeGIF, err := simage.GenerateAnimationGIF(imgGen, width, height, colorPalette, 0)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	gif.EncodeAll(outputFile, animeGIF)
 }
