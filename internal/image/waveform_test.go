@@ -20,6 +20,7 @@ func TestNewWaveformImage(t *testing.T) {
 	wimg, _ := NewWaveformImage(128, 64, "#000000", "#00ff00", 1)
 	if wimg == nil {
 		t.Errorf("NewWaveformImage(128, 64, \"#000000\", \"#00ff00\", 1) = nil, _; want WaveformImage")
+		t.FailNow()
 	}
 
 	got := wimg.context.Width()

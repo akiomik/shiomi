@@ -47,18 +47,18 @@ var rootCmd = &cobra.Command{
 		}
 
 		inputFile, err := os.Open(input)
-		defer inputFile.Close()
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
+		defer inputFile.Close()
 
 		outputFile, err := os.OpenFile(output, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-		defer outputFile.Close()
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
+		defer outputFile.Close()
 
 		config := &generator.Config{
 			Frequency:       freq,
