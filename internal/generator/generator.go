@@ -38,7 +38,7 @@ func GenerateWaveformGIF(inputFile io.Reader, outputFile io.Writer, config *Conf
 		os.Exit(1)
 	}
 
-	imgGen := make(chan *image.Paletted)
+	imgGen := make(chan image.Image)
 	go func() {
 		defer close(imgGen)
 
@@ -49,11 +49,10 @@ func GenerateWaveformGIF(inputFile io.Reader, outputFile io.Writer, config *Conf
 				os.Exit(1)
 			}
 
-			wimg.DrawWaveform(samples)
-			pimg := wimg.ConvertToPaletted(colorPalette)
 			wimg.Clear()
+			wimg.DrawWaveform(samples)
 
-			imgGen <- pimg
+			imgGen <- wimg.Image()
 		}
 	}()
 

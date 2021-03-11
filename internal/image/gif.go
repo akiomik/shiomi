@@ -7,7 +7,20 @@ import (
 	"image/gif"
 )
 
-func GenerateAnimationGIF(ch <-chan *image.Paletted, width uint, height uint, palette color.Palette, delay uint) (*gif.GIF, error) {
+func ConvertImageToPaletted(img image.Image, palette color.Palette) *image.Paletted {
+	bounds := img.Bounds()
+	pimg := image.NewPaletted(bounds, palette)
+
+	for x := bounds.Min.X; x < bounds.Max.X; x++ {
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			pimg.Set(x, y, img.At(x, y))
+		}
+	}
+
+	return pimg
+}
+
+func GenerateAnimationGIF(ch <-chan image.Image, width uint, height uint, palette color.Palette, delay uint) (*gif.GIF, error) {
 	if width <= 0 || height <= 0 {
 		return nil, errors.New("width and height must be > 0")
 	}
@@ -16,7 +29,7 @@ func GenerateAnimationGIF(ch <-chan *image.Paletted, width uint, height uint, pa
 	var delays []int
 
 	for img := range ch {
-		images = append(images, img)
+		images = append(images, ConvertImageToPaletted(img, palette))
 		delays = append(delays, int(delay))
 	}
 
