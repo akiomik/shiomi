@@ -5,7 +5,7 @@ import (
 	"io"
 	"math"
 
-	"github.com/mjibson/go-dsp/wav"
+	"github.com/madelynnblue/go-dsp/wav"
 )
 
 type Audio struct {
