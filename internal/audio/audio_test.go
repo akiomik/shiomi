@@ -10,7 +10,7 @@ var testTone = "../../test/data/sine-44.1kHz-16bit-1kHz-3s.wav"
 func TestNewAudio(t *testing.T) {
 	f, err := os.Open(testTone)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 	defer f.Close()
 
@@ -38,13 +38,13 @@ func TestNewAudio(t *testing.T) {
 func TestNumSamplesPerCycle(t *testing.T) {
 	f, err := os.Open(testTone)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 	defer f.Close()
 
 	a, err := NewAudio(f, 1000, 3, 10)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 
 	got := a.NumSamplesPerCycle()
@@ -56,13 +56,13 @@ func TestNumSamplesPerCycle(t *testing.T) {
 func TestNumSamplesPerWindow(t *testing.T) {
 	f, err := os.Open(testTone)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 	defer f.Close()
 
 	a, err := NewAudio(f, 1000, 3, 10)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 
 	got := a.NumSamplesPerWindow()
@@ -74,13 +74,13 @@ func TestNumSamplesPerWindow(t *testing.T) {
 func TestRoundedNumSamplesPerWindow(t *testing.T) {
 	f, err := os.Open(testTone)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 	defer f.Close()
 
 	a, err := NewAudio(f, 1000, 3, 10)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 
 	got := a.RoundedNumSamplesPerWindow()
@@ -92,13 +92,13 @@ func TestRoundedNumSamplesPerWindow(t *testing.T) {
 func TestNumWindow(t *testing.T) {
 	f, err := os.Open(testTone)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 	defer f.Close()
 
 	a, err := NewAudio(f, 1000, 3, 10)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 
 	got := a.NumWindow()

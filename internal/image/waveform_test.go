@@ -37,7 +37,7 @@ func TestNewWaveformImage(t *testing.T) {
 func TestDrawBackground(t *testing.T) {
 	wimg, err := NewWaveformImage(128, 64, "#000000", "#00ff00", 1)
 	if wimg == nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 
 	wimg.DrawBackground()
@@ -58,7 +58,7 @@ func TestDrawBackground(t *testing.T) {
 func TestDrawPolyLine(t *testing.T) {
 	// wimg, err := NewWaveformImage(128, 64, "#000000", "#00ff00", 1)
 	// if wimg == nil {
-	// 	t.Errorf(err.Error())
+	// 	t.Fatal(err)
 	// }
 	//
 	// left, top := 0.0, 0.0
@@ -86,7 +86,7 @@ func TestDrawPolyLine(t *testing.T) {
 func TestConvertToPaletted(t *testing.T) {
 	wimg, err := NewWaveformImage(128, 64, "#ff00ff", "#00ff00", 1)
 	if wimg == nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 
 	wimg.DrawBackground()
