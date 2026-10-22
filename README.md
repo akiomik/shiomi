@@ -7,7 +7,7 @@ shiomi (潮見) is an oscilloscope-like audio waveform GIF animation generator.
 ## Installation
 
 ```sh
-go get github.com/akiomik/shiomi
+go install github.com/akiomik/shiomi@latest
 ```
 
 ## Usage

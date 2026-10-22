@@ -1,11 +1,16 @@
 module github.com/akiomik/shiomi
 
-go 1.14
+go 1.26.0
 
 require (
 	github.com/fogleman/gg v1.3.0
+	github.com/madelynnblue/go-dsp v1.0.0
+	github.com/spf13/cobra v1.10.2
+)
+
+require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12
-	github.com/spf13/cobra v1.1.3
-	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/spf13/pflag v1.0.9 // indirect
+	golang.org/x/image v0.47.0 // indirect
 )
